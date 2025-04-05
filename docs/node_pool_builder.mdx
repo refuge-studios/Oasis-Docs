@@ -1,0 +1,83 @@
+# `node_pool_builder.mdx`
+
+## Overview
+
+The `node_pool_builder` class is an extension of `node_pool` that constructs voxelized spatial hierarchies (SVDAGs) from 3D scene geometry. It converts input geometry into a voxel DAG structure by recursively subdividing space, useful for real-time rendering, compression, and level-of-detail systems.
+
+**Note:** This feature requires Assimp and is only available when `ASSIMP_SCENE_ENABLED` is defined.
+
+---
+
+## Requirements
+- Assimp scene loader must be enabled.
+- `glm` must be available for 3D vector math.
+
+---
+
+## Class: `node_pool_builder`
+
+### Inherits
+```cpp
+class node_pool_builder : public virtual node_pool
+```
+
+### Description
+Builds a `node_pool` from a scene using recursive spatial subdivision. The voxel structure is stored in the `node_pool` base.
+
+---
+
+## Public Interface
+
+### Constructor
+```cpp
+explicit node_pool_builder() = default;
+```
+Initializes a new builder instance.
+
+### `void build(scene* p_scene, int depth, glm::vec3 corner, float size)`
+
+Builds a node pool from a 3D scene.
+
+#### Parameters
+- `p_scene`: Pointer to the scene containing geometry.
+- `depth`: Octree depth (higher values increase resolution).
+- `corner`: The minimum corner of the bounding volume.
+- `size`: Length of the bounding cube's edge.
+
+#### Notes
+- This method is **unoptimized** and meant for initial experiments or small-scale data.
+
+---
+
+## Private Method
+
+### `int recursive_build(...)`
+
+Internal recursive function that subdivides space and deduplicates nodes.
+
+#### Parameters
+- `p_scene`: Scene pointer.
+- `d`: Current depth.
+- `md`: Max depth.
+- `min`: Minimum corner of current volume.
+- `size`: Edge length.
+- `indexes`: List of current voxel indices.
+- `start`: Starting index in `indexes`.
+- `dedup`: Hash map for deduplication (`node_t<int>` → int).
+- `progress_callback`: Function to track progress.
+
+#### Returns
+- Index to the node pool after processing the region.
+
+---
+
+## Notes
+- Use `compress()` afterward to reduce redundant nodes.
+- Consider optimizing this for production by batching or GPU acceleration.
+
+---
+
+## Related
+- [`node_pool`](./node_pool.mdx)
+- [`scene`](Assimp-compatible abstraction)
+

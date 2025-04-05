@@ -1,0 +1,52 @@
+# `node_pool_traversal`
+
+The `node_pool_traversal` class in the Oasis framework enables efficient ray-based queries over Sparse Voxel Directed Acyclic Graphs (SVDAGs). It extends the functionality of `node_pool` by allowing real-time intersection testing against a voxel DAG structure.
+
+## Overview
+
+This class is designed to answer ray-voxel intersection queries, a key operation in rendering, collision detection, and spatial queries. It is built to handle complex DAG-based voxel structures with configurable traversal depth and distance limits.
+
+> Header: `#include <oasis/node_pool.hpp>`
+
+## Inheritance
+
+```cpp
+class node_pool_traversal : public virtual node_pool;
+```
+
+This class derives from `node_pool` and thus shares its data access capabilities, including methods for getting and setting voxel nodes.
+
+## Constructor
+
+```cpp
+explicit node_pool_traversal() = default;
+```
+
+Creates an empty traversal object.
+
+## Methods
+
+### `traversal`
+
+```cpp
+std::optional<glm::vec3> traversal(
+  glm::vec3 o,
+  glm::vec3 d,
+  uint32_t max_depth,
+  float max_dist
+);
+```
+
+Performs a raycast into the voxel node pool. If the ray hits any voxel node before exceeding `max_dist`, it returns the point of intersection.
+
+#### Parameters
+- `o`: The origin of the ray in world space.
+- `d`: A normalized direction vector of the ray.
+- `max_depth`: The maximum octree depth to consider in traversal.
+- `max_dist`: The maximum travel distance before halting the ray.
+
+#### Returns
+- `std::optional<glm::vec3>`
+  - A world-space intersection point if a voxel is hit.
+  - `std::nullopt` if no hit occurred within the specified constraints.
+

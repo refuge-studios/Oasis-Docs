@@ -1,0 +1,113 @@
+# `node_pool_editor.mdx`
+
+## Overview
+
+The `node_pool_editor` class extends `node_pool` to provide tools for modifying Sparse Voxel DAGs (SVDAGs). It supports merging, subtracting, and altering the structure of node pools. The editor can also generate new voxel structures using procedural methods such as Signed Distance Functions (SDF).
+
+---
+
+## Class: `node_pool_editor`
+
+### Inherits
+```cpp
+class node_pool_editor : public virtual node_pool
+```
+
+### Description
+Adds interactive and programmatic editing capabilities to an existing voxel node pool. This includes duplication, structural modification, procedural generation, and merging with other node pools.
+
+---
+
+## Public Interface
+
+### Constructor
+```cpp
+explicit node_pool_editor() = default;
+```
+Creates an empty node pool editor.
+
+### `void combine(node_pool other, bool overwrite, bool recompress)`
+
+Merges another node pool into this one.
+
+#### Parameters
+- `other`: The node pool to merge.
+- `overwrite`: Replace conflicting nodes if true.
+- `recompress`: Deduplicate nodes after merging.
+
+---
+
+### `void subtract(node_pool other, bool recompress)`
+
+Subtracts another node pool from this one, removing shared parts.
+
+#### Parameters
+- `other`: The node pool to subtract.
+- `recompress`: Apply compression after subtraction.
+
+---
+
+### `node_pool from_sdf(size_t depth, std::function<bool(glm::vec3, float)> intersect_test)`
+
+Generates a voxel DAG using a signed distance function.
+
+#### Parameters
+- `depth`: Maximum depth of the octree.
+- `intersect_test`: A lambda or function that tests voxel intersection.
+
+#### Returns
+- A new `node_pool` representing the SDF geometry.
+
+---
+
+### `std::optional<size_t> duplicate_child(size_t parent_index, size_t child_index)`
+
+Duplicates a specific child node and updates the parent.
+
+#### Parameters
+- `parent_index`: Index of the parent node.
+- `child_index`: Index of the child to duplicate.
+
+#### Returns
+- Index of the new child, or `std::nullopt` if not found.
+
+---
+
+### `std::optional<size_t> subdivide_child(size_t parent_index, size_t child_index)`
+
+Replaces a child with a new node containing eight references to the original.
+
+#### Parameters
+- `parent_index`: Index of the parent node.
+- `child_index`: Index of the child to subdivide.
+
+#### Returns
+- Index of the subdivided node, or `std::nullopt`.
+
+---
+
+## Private Methods
+
+### `void recursive_combine(bool overwrite, size_t parent_index, size_t child_index)`
+Merges child nodes recursively during `combine`.
+
+### `void recursive_subtract(size_t parent_index, size_t child_index)`
+Recursively subtracts overlapping child nodes.
+
+### `int recursive_sdf(...)`
+Builds an octree from a signed distance function.
+
+#### Parameters (partial list)
+- `pool`: Pool being modified.
+- `min`: Lower corner of voxel.
+- `size`: Voxel size.
+- `intersect_test`: Intersection function.
+- `rscale`: Inverse scale.
+- `dedup`: Deduplication cache.
+
+---
+
+## Related
+- [`node_pool`](./node_pool.mdx)
+- [`node_pool_builder`](./node_pool_builder.mdx)
+

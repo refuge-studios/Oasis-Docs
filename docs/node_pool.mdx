@@ -1,0 +1,105 @@
+
+# `node_pool.mdx`
+
+## Overview
+
+The `node_pool` module defines a templated `node_t` structure and the `node_pool` class, which together represent a memory-efficient structure for storing and processing hierarchical spatial data such as Sparse Voxel DAGs (SVDAGs). This system is used extensively in voxel rendering, compression, and geometry processing.
+
+---
+
+## `node_t<T>`
+
+### Description
+A generic node structure that holds eight children (octree format). This templated class provides value accessors, equality comparison, null node creation, and type-safe utilities.
+
+### Definition
+```cpp
+template <typename T>
+struct node_t {
+    std::array<T, 8> children = {0};
+    ...
+};
+```
+
+### Key Methods
+- `has_value()`: Returns true if any of the children are non-zero.
+- `operator bool()`: Implicit cast to bool based on `has_value()`.
+- `operator==` / `operator!=`: Compares child node values.
+- `value()`: Access to the internal array (const/non-const).
+- `value(size_t index)`: Access a single child (bounds-checked).
+- `static null()`: Returns a default node with all-zero children.
+
+---
+
+## `murmur_hasher32_t`
+
+### Description
+A custom 32-bit and 64-bit compatible MurmurHash-style hasher for spans of `uint32_t`. Used to deduplicate `node_t<int>` efficiently.
+
+### Key Methods
+- `operator()(std::span<const uint32_t>)`
+- `operator()(std::span<const uint32_t, 2>)`
+
+This ensures compatibility with both general node hashing and a more compact 2-word representation.
+
+### Specialization
+```cpp
+template<>
+struct std::hash<oasis::node_t<int>> {
+    size_t operator()(const node_t<int>& v) const;
+};
+```
+
+---
+
+## `node_pool` Class
+
+### Purpose
+
+Manages a vector of voxel nodes and provides methods for serialization, deduplication, and manipulation of voxel DAG structures.
+
+### Definition
+```cpp
+class node_pool {
+  std::vector<node_t<int>> m_nodes;
+  ...
+};
+```
+
+### Friend Classes
+- `node_pool_editor`
+- `node_pool_builder`
+- `node_pool_traversal`
+
+### Public Interface
+
+#### Constructor
+```cpp
+node_pool();
+```
+
+#### Destructor
+```cpp
+~node_pool();
+```
+
+#### Methods
+
+##### `void shift_indexes(int size)`
+Adjusts node indices by an offset (useful when merging multiple pools).
+
+##### `void compress()`
+Deduplicates nodes to reduce memory and optimize access.
+
+##### `void deserialize(const std::string filename)`
+Loads node data from a binary file into the pool.
+
+##### `std::vector<node_t<int>>& get_nodes()`
+Returns a reference to the entire node list.
+
+##### `node_t<int>& get_node(int index)`
+Access a specific node by index.
+
+##### `size_t size() const`
+Returns the total number of nodes in the pool.
+
